@@ -5,8 +5,8 @@ platform :ios do
   lane :tests do
     scan(
       scheme: "fastlanesample",
-      devices: ["iPhone 14 Pro"],
-      fail_build: true
+      devices: ["iPhone 14"], 
+      os: "17.4"
     )
   end
 

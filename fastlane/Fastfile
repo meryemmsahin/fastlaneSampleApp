@@ -16,7 +16,14 @@ platform :ios do
     build_app(
       scheme: "fastlanesample",
       export_method: "development",
-      xcargs: "-allowProvisioningUpdates"
+      export_options: {
+        provisioningProfiles: {
+          "tr.com.meryem.fastlanesample" => "fastlaneProvisioningProfile"
+        },
+        signingStyle: "manual",
+        signingCertificate: "Apple Development",
+        teamID: ENV["APPLE_TEAM_ID"]
+      }
     )
   end
 
@@ -27,7 +34,14 @@ platform :ios do
     build_app(
       scheme: "fastlanesample",
       export_method: "app-store",
-      xcargs: "-allowProvisioningUpdates"
+      export_options: {
+        provisioningProfiles: {
+          "tr.com.meryem.fastlanesample" => "fastlaneProvisioningProfile"
+        },
+        signingStyle: "manual",
+        signingCertificate: "Apple Distribution",
+        teamID: ENV["APPLE_TEAM_ID"]
+      }
     )
 
     upload_to_testflight
@@ -40,7 +54,14 @@ platform :ios do
     build_app(
       scheme: "fastlanesample",
       export_method: "app-store",
-      xcargs: "-allowProvisioningUpdates"
+      export_options: {
+        provisioningProfiles: {
+          "tr.com.meryem.fastlanesample" => "fastlaneProvisioningProfile"
+        },
+        signingStyle: "manual",
+        signingCertificate: "Apple Distribution",
+        teamID: ENV["APPLE_TEAM_ID"]
+      }
     )
 
     upload_to_app_store

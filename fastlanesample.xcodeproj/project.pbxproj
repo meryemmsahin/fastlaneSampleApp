@@ -1,9 +1,8 @@
-// !$*UTF8*$!
-{
+// !$*UTF8*$!{
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 77;
+	objectVersion = 56;
 	objects = {
 
 /* Begin PBXContainerItemProxy section */

@@ -1,0 +1,101 @@
+name: iOS CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - develop
+      - release/*
+      - main
+
+jobs:
+  build-test:
+    name: Build & Test
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Ruby and Fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.0
+
+      - name: Install Dependencies
+        run: bundle install || gem install fastlane
+
+      - name: Run Unit & UI Tests
+        run: fastlane tests
+
+  deploy-qa:
+    name: Deploy to Firebase (QA)
+    needs: build-test
+    runs-on: macos-latest
+    if: github.ref == 'refs/heads/develop'
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Ruby and Fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.0
+
+      - name: Install Dependencies
+        run: bundle install || gem install fastlane
+
+      - name: Deploy to Firebase App Distribution
+        run: fastlane qa
+        env:
+          FIREBASE_APP_DISTRIBUTION_CLI_TOKEN: ${{ secrets.FIREBASE_APP_DISTRIBUTION_CLI_TOKEN }}
+
+  deploy-beta:
+    name: Deploy to TestFlight (Beta)
+    needs: build-test
+    runs-on: macos-latest
+    if: startsWith(github.ref, 'refs/heads/release/')
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Ruby and Fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.0
+
+      - name: Install Dependencies
+        run: bundle install || gem install fastlane
+
+      - name: Deploy to TestFlight
+        run: fastlane beta
+        env:
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+
+  deploy-release:
+    name: Deploy to App Store (Production)
+    needs: build-test
+    runs-on: macos-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Setup Ruby and Fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.0
+
+      - name: Install Dependencies
+        run: bundle install || gem install fastlane
+
+      - name: Deploy to App Store
+        run: fastlane release
+        env:
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}

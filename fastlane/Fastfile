@@ -18,7 +18,7 @@ platform :ios do
       export_method: "development",
       export_options: {
         provisioningProfiles: {
-          "tr.com.meryem.fastlanesample" => "fastlaneProvisioningProfile"
+          "tr.com.meryem.fastlanesample" => "fastlaneProfile1"
         },
         signingStyle: "manual",
         signingCertificate: "Apple Development",

@@ -2,12 +2,16 @@ default_platform(:ios)
 
 platform :ios do
 desc "Test Ortamı için Firebase App Distribution'a Yükleme"
-  lane :qa do
-    increment_build_number(
-      xcodeproj: "fastlanesample.xcodeproj"
-    )
+lane :qa do
+    increment_build_number
     build_app(
-      scheme: "fastlanesample"
+      scheme: "fastlanesample",
+      export_options: {
+        method: "development",
+        provisioningProfiles: {
+          "tr.com.meryem.fastlanesample" => "Fastlane Sample"
+        }
+      }
     )
     firebase_app_distribution(
       app: "1:643517187450:ios:ad207d4980f59fc11d82c3",
@@ -15,7 +19,7 @@ desc "Test Ortamı için Firebase App Distribution'a Yükleme"
       release_notes: "Yeni test buildi yayınlandı!",
       firebase_cli_token: ENV["FIREBASE_APP_DISTRIBUTION_CLI_TOKEN"]
     )
-  end
+end
 
   desc "Beta Testi için TestFlight Dağıtımı"
   lane :beta do

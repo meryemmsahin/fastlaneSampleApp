@@ -9,9 +9,10 @@ lane :qa do
       export_options: {
         method: "development",
         provisioningProfiles: {
-          "tr.com.meryem.fastlanesample" => "Fastlane Sample"
+          "tr.com.meryem.fastlanesample" => "match Development tr.com.meryem.fastlanesample"
         }
-      }
+      },
+      xcargs: "-allowProvisioningUpdates"
     )
     firebase_app_distribution(
       app: "1:643517187450:ios:ad207d4980f59fc11d82c3",

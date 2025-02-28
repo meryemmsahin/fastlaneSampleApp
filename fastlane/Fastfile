@@ -4,30 +4,23 @@ platform :ios do
 desc "Test Ortamı için Firebase App Distribution'a Yükleme"
 lane :qa do
     increment_build_number
-    
+
     app_store_connect_api_key(
-      key_id: ENV["APP_STORE_CONNECT_KEY_ID"], 
-      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"], 
+      key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
+      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
       key_content: ENV["APP_STORE_CONNECT_API_KEY"],
+      key_filepath: File.expand_path("./AuthKey_TT9YC58NX8.p8"),
       in_house: false
     )
 
     build_app(
       scheme: "fastlanesample",
+      export_method: "development",
       export_options: {
-        method: "development",
         provisioningProfiles: {
           "tr.com.meryem.fastlanesample" => "match Development tr.com.meryem.fastlanesample"
         }
-      },
-      xcargs: "-allowProvisioningUpdates"
-    )
-
-    firebase_app_distribution(
-      app: "1:643517187450:ios:ad207d4980f59fc11d82c3",
-      testers: "meryem.sahin@adesso.com.tr",
-      release_notes: "Yeni test buildi yayınlandı!",
-      firebase_cli_token: ENV["FIREBASE_APP_DISTRIBUTION_CLI_TOKEN"]
+      }
     )
 end
 

@@ -1,8 +1,8 @@
 default_platform(:ios)
 
 platform :ios do
-desc "Test Ortamı için Firebase App Distribution'a Yükleme"
-lane :qa do
+  desc "Test Ortamı için Firebase App Distribution'a Yükleme"
+  lane :qa do
     increment_build_number
 
     app_store_connect_api_key(
@@ -16,22 +16,22 @@ lane :qa do
     build_app(
       scheme: "fastlanesample",
       export_method: "development",
-      export_options: {
-        provisioningProfiles: {
-          "tr.com.meryem.fastlanesample" => "fastlaneProvisioningProfile"
-        }
-      }
+      allowProvisioningUpdates: true
     )
-end
+  end
 
   desc "Beta Testi için TestFlight Dağıtımı"
   lane :beta do
     increment_build_number(
       xcodeproj: "fastlanesample.xcodeproj"
     )
+
     build_app(
-      scheme: "fastlanesample"
+      scheme: "fastlanesample",
+      export_method: "app-store",
+      allowProvisioningUpdates: true
     )
+
     upload_to_testflight
   end
 
@@ -40,9 +40,13 @@ end
     increment_build_number(
       xcodeproj: "fastlanesample.xcodeproj"
     )
+
     build_app(
-      scheme: "fastlanesample"
+      scheme: "fastlanesample",
+      export_method: "app-store",
+      allowProvisioningUpdates: true
     )
+
     upload_to_app_store
   end
 end

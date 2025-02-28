@@ -3,9 +3,7 @@ default_platform(:ios)
 platform :ios do
   desc "Test Ortamı için Firebase App Distribution'a Yükleme"
   lane :qa do
-        increment_build_number(
-      xcodeproj: "fastlanesample.xcodeproj"
-    )
+    increment_build_number(xcodeproj: "fastlanesample.xcodeproj")
 
     app_store_connect_api_key(
       key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
@@ -18,20 +16,18 @@ platform :ios do
     build_app(
       scheme: "fastlanesample",
       export_method: "development",
-      allowProvisioningUpdates: true
+      export_xcargs: "-allowProvisioningUpdates"
     )
   end
 
   desc "Beta Testi için TestFlight Dağıtımı"
   lane :beta do
-    increment_build_number(
-      xcodeproj: "fastlanesample.xcodeproj"
-    )
+    increment_build_number(xcodeproj: "fastlanesample.xcodeproj")
 
     build_app(
       scheme: "fastlanesample",
       export_method: "app-store",
-      allowProvisioningUpdates: true
+      export_xcargs: "-allowProvisioningUpdates"
     )
 
     upload_to_testflight
@@ -39,14 +35,12 @@ platform :ios do
 
   desc "Production için App Store Yayınlama"
   lane :release do
-    increment_build_number(
-      xcodeproj: "fastlanesample.xcodeproj"
-    )
+    increment_build_number(xcodeproj: "fastlanesample.xcodeproj")
 
     build_app(
       scheme: "fastlanesample",
       export_method: "app-store",
-      allowProvisioningUpdates: true
+      export_xcargs: "-allowProvisioningUpdates"
     )
 
     upload_to_app_store

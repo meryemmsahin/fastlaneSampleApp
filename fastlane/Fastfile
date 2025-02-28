@@ -1,16 +1,7 @@
 default_platform(:ios)
 
 platform :ios do
-  desc "Unit ve UI Testlerini Çalıştır"
-  lane :tests do
-    scan(
-      scheme: "fastlanesample",
-      devices: ["iPhone 14"], 
-      os: "17.4"
-    )
-  end
-
-  desc "Test Ortamı için Firebase App Distribution'a Yükleme"
+desc "Test Ortamı için Firebase App Distribution'a Yükleme"
   lane :qa do
     increment_build_number(
       xcodeproj: "fastlanesample.xcodeproj"

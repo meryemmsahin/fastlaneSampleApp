@@ -1,0 +1,50 @@
+default_platform(:ios)
+
+platform :ios do
+  desc "Unit ve UI Testlerini Çalıştır"
+  lane :tests do
+    scan(
+      scheme: "fastlanesample",
+      devices: ["iPhone 14 Pro"],
+      fail_build: true
+    )
+  end
+
+  desc "Test Ortamı için Firebase App Distribution'a Yükleme"
+  lane :qa do
+    increment_build_number(
+      xcodeproj: "fastlanesample.xcodeproj"
+    )
+    build_app(
+      scheme: "fastlanesample"
+    )
+    firebase_app_distribution(
+      app: "1:643517187450:ios:ad207d4980f59fc11d82c3",
+      testers: "meryem.sahin@adesso.com.tr",
+      release_notes: "Yeni test buildi yayınlandı!",
+      firebase_cli_token: ENV["FIREBASE_APP_DISTRIBUTION_CLI_TOKEN"]
+    )
+  end
+
+  desc "Beta Testi için TestFlight Dağıtımı"
+  lane :beta do
+    increment_build_number(
+      xcodeproj: "fastlanesample.xcodeproj"
+    )
+    build_app(
+      scheme: "fastlanesample"
+    )
+    upload_to_testflight
+  end
+
+  desc "Production için App Store Yayınlama"
+  lane :release do
+    increment_build_number(
+      xcodeproj: "fastlanesample.xcodeproj"
+    )
+    build_app(
+      scheme: "fastlanesample"
+    )
+    upload_to_app_store
+  end
+end

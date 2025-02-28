@@ -14,6 +14,13 @@ jobs:
     if: github.ref == 'refs/heads/develop'
 
     steps:
+
+      - name: Debug Environment Variables
+        run: |
+          echo "APP_STORE_CONNECT_KEY_ID=${{ secrets.APP_STORE_CONNECT_KEY_ID }}"
+          echo "APP_STORE_CONNECT_ISSUER_ID=${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}"
+          echo "APP_STORE_CONNECT_API_KEY (Hidden for security)"
+
       - name: Checkout Repository
         uses: actions/checkout@v3
 

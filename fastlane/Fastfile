@@ -6,9 +6,9 @@ lane :qa do
     increment_build_number
     
     app_store_connect_api_key(
-      key_id: "TT9YC58NX8",
-      issuer_id: "c3c825e5-ab09-417d-aef6-4a1f337b49a5",
-      key_content: ENV["APP_STORE_CONNECT_API_KEY"], # Secret'tan çekiyor
+      key_id: ENV["APP_STORE_CONNECT_KEY_ID"], 
+      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"], 
+      key_content: ENV["APP_STORE_CONNECT_API_KEY"],
       in_house: false
     )
 

@@ -16,7 +16,7 @@ platform :ios do
     build_app(
       scheme: "fastlanesample",
       export_method: "development",
-      export_xcargs: "-allowProvisioningUpdates"
+      xcargs: "-allowProvisioningUpdates"
     )
   end
 
@@ -27,7 +27,7 @@ platform :ios do
     build_app(
       scheme: "fastlanesample",
       export_method: "app-store",
-      export_xcargs: "-allowProvisioningUpdates"
+      xcargs: "-allowProvisioningUpdates"
     )
 
     upload_to_testflight
@@ -40,7 +40,7 @@ platform :ios do
     build_app(
       scheme: "fastlanesample",
       export_method: "app-store",
-      export_xcargs: "-allowProvisioningUpdates"
+      xcargs: "-allowProvisioningUpdates"
     )
 
     upload_to_app_store

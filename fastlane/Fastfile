@@ -24,22 +24,12 @@ lane :ci_tests do
   # Swift Package Manager bağımlılıklarını çöz
   sh "xcodebuild -resolvePackageDependencies -scheme fastlanesample -project #{project_path}"
 
-  available_simulators = sh("xcrun simctl list devices available", print_command: false)
-matched_simulator = available_simulators.match(/(iPhone 15) \((.*?)\) \(Shutdown\)/)
-
-if matched_simulator.nil?
-  UI.user_error!("❌ Uygun bir iOS simülatörü bulunamadı!")
-end
-
-simulator_name = matched_simulator[1]
-simulator_udid = matched_simulator[2]
-
 scan(
   scheme: "fastlanesample",
   clean: true,
-  project: File.expand_path(project_path),
+  project: "fastlanesample.xcodeproj",
   derived_data_path: "./fastlane/derivedData",
-  destination: "platform=iOS Simulator,id=#{simulator_udid}"
+  destination: "platform=iOS Simulator,OS=17.5,name=iPhone 15"
 )
 end
 

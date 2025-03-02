@@ -24,12 +24,12 @@ lane :ci_tests do
   # Swift Package Manager bağımlılıklarını çöz
   sh "xcodebuild -resolvePackageDependencies -scheme fastlanesample -project #{project_path}"
 
-  # ✅ Mevcut iOS 17 simülatörlerini bul
+  # ✅ Mevcut simülatörleri kontrol et
   available_simulators = sh("xcrun simctl list devices available", print_command: false)
   matched_simulator = available_simulators.match(/(iPhone 15) \((.*?)\) \(Shutdown\)/)
 
   if matched_simulator.nil?
-    UI.user_error!("❌ Uygun bir iOS 17 simülatörü bulunamadı!")
+    UI.user_error!("❌ Uygun bir iOS simülatörü bulunamadı!")
   end
 
   simulator_name = matched_simulator[1]
@@ -58,7 +58,7 @@ lane :ci_tests do
     clean: true,
     project: File.expand_path(project_path),
     derived_data_path: "./fastlane/derivedData",
-    destination: "platform=iOS Simulator,OS=17.2,name=iPhone 15" # iOS 18 değil, iOS 17 seçildi!
+    destination: "platform=iOS Simulator,OS=latest,name=iPhone 15"
   )
 end
 

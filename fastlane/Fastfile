@@ -27,7 +27,7 @@ lane :ci_tests do
 scan(
   scheme: "fastlanesample",
   clean: true,
-  project: "fastlanesample.xcodeproj",
+  project: File.expand_path(project_path),
   derived_data_path: "./fastlane/derivedData",
   destination: "platform=iOS Simulator,OS=17.5,name=iPhone 15"
 )

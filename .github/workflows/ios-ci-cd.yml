@@ -14,7 +14,7 @@ on:
 jobs:
   tests:
     name: Run Unit Tests
-    run: fastlane ci_tests
+    runs-on: macos-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -38,7 +38,7 @@ jobs:
           fi
 
       - name: Run Unit Tests
-        run: fastlane run_tests
+        run: fastlane ci_tests
 
   deploy-firebase:
     name: Deploy to Firebase (Develop)

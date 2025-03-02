@@ -24,42 +24,23 @@ lane :ci_tests do
   # Swift Package Manager bağımlılıklarını çöz
   sh "xcodebuild -resolvePackageDependencies -scheme fastlanesample -project #{project_path}"
 
-  # ✅ Mevcut simülatörleri kontrol et
   available_simulators = sh("xcrun simctl list devices available", print_command: false)
-  matched_simulator = available_simulators.match(/(iPhone 15) \((.*?)\) \(Shutdown\)/)
+matched_simulator = available_simulators.match(/(iPhone 15) \((.*?)\) \(Shutdown\)/)
 
-  if matched_simulator.nil?
-    UI.user_error!("❌ Uygun bir iOS simülatörü bulunamadı!")
-  end
+if matched_simulator.nil?
+  UI.user_error!("❌ Uygun bir iOS simülatörü bulunamadı!")
+end
 
-  simulator_name = matched_simulator[1]
-  simulator_udid = matched_simulator[2]
+simulator_name = matched_simulator[1]
+simulator_udid = matched_simulator[2]
 
-  puts "✅ Kullanılacak Simülatör: #{simulator_name} (UDID: #{simulator_udid})"
-
-  # Simülatörü başlat
-  sh "xcrun simctl boot #{simulator_udid}"
-  puts "🚀 Simülatör başlatıldı: #{simulator_name}"
-
-  # 📌 Simülatörün tamamen açılması için bekleyelim
-  puts "⏳ Simülatörün tamamen açılması için bekleniyor..."
-  sleep(20)
-
-  # 🔄 Xcode simülatör cache sıfırlanıyor
-  sh "xcrun simctl shutdown all || true"
-  sh "pgrep -x 'com.apple.CoreSimulator.CoreSimulatorService' && sudo killall -9 com.apple.CoreSimulator.CoreSimulatorService || true"
-  sh "pgrep -x 'Simulator' && sudo killall -9 Simulator || true"
-
-  sleep(5)
-
-  # ✅ Testleri çalıştır
-  scan(
-    scheme: "fastlanesample",
-    clean: true,
-    project: File.expand_path(project_path),
-    derived_data_path: "./fastlane/derivedData",
-    destination: "platform=iOS Simulator,OS=17.2,name=iPhone 15"
-  )
+scan(
+  scheme: "fastlanesample",
+  clean: true,
+  project: File.expand_path(project_path),
+  derived_data_path: "./fastlane/derivedData",
+  destination: "platform=iOS Simulator,id=#{simulator_udid}"
+)
 end
 
   desc "Develop branch'ine pushlandığında Firebase'e deploy eder"

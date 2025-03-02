@@ -39,8 +39,15 @@ jobs:
       - name: Check Available Xcode SDKs
         run: xcodebuild -showsdks
 
-      - name: Install iOS 17.2 Simulator
-        run: sudo xcodebuild -downloadPlatform iOS
+      - name: Ensure iOS 17.2 Simulator is Installed
+        run: |
+          sudo xcodebuild -runFirstLaunch
+          sudo xcodebuild -downloadPlatform iOS ||
+            echo "iOS Platform already installed"
+          sudo xcrun simctl create "iPhone 15" \
+            com.apple.CoreSimulator.SimDeviceType.iPhone-15 \
+            com.apple.CoreSimulator.SimRuntime.iOS-17-2 ||
+            echo "Simulator already exists"
 
       - name: Setup Ruby and Fastlane
         uses: ruby/setup-ruby@v1
@@ -55,8 +62,17 @@ jobs:
             gem install fastlane
           fi
 
-      - name: Run Unit Tests
+      - name: List Available Simulators
+        run: xcrun simctl list devices available
+
+      - name: Run Unit Tests on iPhone 15 (iOS 17.2)
         run: fastlane ci_tests
+        env:
+          SIMULATOR_UDID: "$(
+            xcrun simctl list devices available |
+            grep 'iPhone 15' | grep '(Shutdown)' |
+            awk '{print $NF}' | tr -d '()'
+        )"
 
   deploy-firebase:
     name: Deploy to Firebase (Develop)

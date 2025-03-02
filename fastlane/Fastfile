@@ -21,25 +21,24 @@ platform :ios do
     # Swift Package Manager bağımlılıklarını çöz
     sh "xcodebuild -resolvePackageDependencies -scheme fastlanesample -project #{project_path}"
 
-    # Dinamik Simülatör Seçimi
-    available_simulators = sh("xcrun simctl list devices available", print_command: false)
-    matched_simulator = available_simulators.match(/(iPhone\s15).*?\((.*?)\)/)
+   available_simulators = sh("xcrun simctl list devices available", print_command: false)
+matched_simulator = available_simulators.match(/(iPhone\s15).*?\((.*?)\)/)
 
-    if matched_simulator.nil?
-      UI.user_error!("❌ No available iPhone 15 simulator found!")
-    end
+if matched_simulator.nil?
+  UI.user_error!("❌ No available iPhone 15 simulator found!")
+end
 
-    simulator_udid = matched_simulator[2]
-    puts "✅ Using simulator with UDID: #{simulator_udid}"
+simulator_udid = matched_simulator[2]
+puts "✅ Using simulator with UDID: #{simulator_udid}"
 
-    scan(
-      scheme: "fastlanesample",
-      clean: true,
-      project: File.expand_path(project_path),
-      derived_data_path: "./fastlane/derivedData",
-      destination: "platform=iOS Simulator,id=#{simulator_udid}"
-    )
-  end
+scan(
+  scheme: "fastlanesample",
+  clean: true,
+  project: File.expand_path(project_path),
+  derived_data_path: "./fastlane/derivedData",
+  destination: "platform=iOS Simulator,OS=17.2,name=iPhone 15"
+)
+end
 
   desc "Develop branch'ine pushlandığında Firebase'e deploy eder"
   lane :deploy_to_firebase do

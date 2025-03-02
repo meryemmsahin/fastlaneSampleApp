@@ -2,11 +2,11 @@ default_platform(:ios)
 
 platform :ios do
   desc "Pull Request açıldığında unit testleri çalıştırır"
-  lane :run_tests do
+  lane : ci_tests do
     scan(
       scheme: "fastlanesample",
       clean: true,
-      output_directory: "fastlane/test_output"
+      destination: "platform=iOS Simulator,id=71D594E0-3E1E-4C31-AFB9-DFEE3E99586F"
     )
   end
 

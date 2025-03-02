@@ -31,14 +31,14 @@ jobs:
           sudo xcode-select -s \
             /Applications/Xcode_16.2.app/Contents/Developer
 
-      - name: Ensure iOS 18.2 Simulator is Installed
+      - name: Ensure iOS 17.2 Simulator is Installed
         run: |
           sudo xcodebuild -runFirstLaunch
           sudo xcodebuild -downloadPlatform iOS ||
             echo "iOS Platform already installed"
           sudo xcrun simctl create "iPhone 15" \
             com.apple.CoreSimulator.SimDeviceType.iPhone-15 \
-            com.apple.CoreSimulator.SimRuntime.iOS-18-2 ||
+            com.apple.CoreSimulator.SimRuntime.iOS-17-2 ||
             echo "Simulator already exists"
 
       - name: Setup Ruby and Fastlane
@@ -53,11 +53,13 @@ jobs:
       - name: List Available Simulators
         run: xcrun simctl list devices available
 
-      - name: Boot iPhone 15 (iOS 18.2) Simulator
+      - name: Boot iPhone 15 (iOS 17.2) Simulator
         run: |
           UDID=$(xcrun simctl list devices available | awk \
-            '/iPhone 15/ && /18.2/ {print $NF}' | tr -d '()')
-          [ -z "$UDID" ] && echo "❌ Simulator not found!" && exit 1
+            '/iPhone 15 \(/ && /17.2/ {print $NF}' | tr -d '()')
+          if [ -z "$UDID" ]; then
+            echo "❌ Simulator not found!" && exit 1
+          fi
           echo "✅ Found Simulator: $UDID"
           xcrun simctl boot "$UDID"
           echo "SIMULATOR_UDID=$UDID" >> $GITHUB_ENV

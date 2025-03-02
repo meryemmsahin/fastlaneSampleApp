@@ -43,6 +43,9 @@ jobs:
             gem install fastlane
           fi
 
+      - name: Check Installed Xcode SDKs
+        run: xcodebuild -showsdks
+
       - name: List Available Simulators
         run: xcrun simctl list devices available --json
 

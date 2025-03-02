@@ -2,7 +2,7 @@ default_platform(:ios)
 
 platform :ios do
   desc "Pull Request açıldığında unit testleri çalıştırır"
-  lane : ci_tests do
+  lane :ci_tests do
     scan(
       scheme: "fastlanesample",
       clean: true,

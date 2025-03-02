@@ -2,39 +2,33 @@ default_platform(:ios)
 
 platform :ios do
   desc "Pull Request açıldığında unit testleri çalıştırır"
-  lane :ci_tests do
+ lane :ci_tests do
   ENV["FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT"] = "60"
   ENV["FASTLANE_XCODEBUILD_SETTINGS_RETRIES"] = "6"
 
-  # Eğer yanlış dizindeysek, ana dizine geri dön
-  correct_path = "/Users/meryem.sahin/Projects/fastlanesample"
-  current_path = sh("pwd", print_command: false).strip
-
-  if current_path != correct_path
-    UI.important("⚠️ Fastlane yanlış dizinde çalışıyor! Doğru dizine geçiliyor... 🚀")
-    Dir.chdir(correct_path)
-  end
+  # Fastlane'in çalıştığı ana dizini bul
+  root_path = sh("git rev-parse --show-toplevel", print_command: false).strip
+  Dir.chdir(root_path)
 
   # Mevcut dizini yazdır
   sh "pwd"
   sh "ls -la"
   sh "find . -name '*.xcodeproj'"
 
-  # ✅ **Proje yolunu mutlak yola çeviriyoruz**
+  # Proje yolunu bul
   project_path = Dir.glob("*.xcodeproj").first
   UI.user_error!("❌ Xcode project not found!") if project_path.nil?
 
-  absolute_project_path = File.expand_path(project_path)
-  puts "✅ Xcode project found at: #{absolute_project_path}"
+  puts "✅ Xcode project found at: #{project_path}"
 
   # Swift Package Manager bağımlılıklarını çöz
-  sh "xcodebuild -resolvePackageDependencies -scheme fastlanesample -project #{absolute_project_path}"
+  sh "xcodebuild -resolvePackageDependencies -scheme fastlanesample -project #{project_path}"
 
-  # ✅ **`scan` için mutlak yolu kullanıyoruz**
+  # 📌 `scan` için doğru yolu belirtiyoruz
   scan(
     scheme: "fastlanesample",
     clean: true,
-    project: absolute_project_path, # Mutlak yol
+    project: File.expand_path(project_path), # 🔴 Mutlak yol kullanıyoruz
     destination: "platform=iOS Simulator,id=71D594E0-3E1E-4C31-AFB9-DFEE3E99586F"
   )
 end

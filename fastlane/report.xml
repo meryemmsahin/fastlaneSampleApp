@@ -5,37 +5,37 @@
     
     
       
-      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.000175">
+      <testcase classname="fastlane.lanes" name="0: default_platform" time="0.000177">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="1: pwd" time="0.020377">
+      <testcase classname="fastlane.lanes" name="1: git rev-parse --show-toplevel" time="0.041795">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="2: pwd" time="0.003386">
+      <testcase classname="fastlane.lanes" name="2: pwd" time="0.012339">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="3: ls -la" time="0.019109">
+      <testcase classname="fastlane.lanes" name="3: ls -la" time="0.011312">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="4: find . -name &apos;*.xcodeproj&apos;" time="0.074714">
+      <testcase classname="fastlane.lanes" name="4: find . -name &apos;*.xcodeproj&apos;" time="0.05025">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="5: xcodebuild -resolvePackageDependencies -scheme fastlanesample -project /Users/meryem.sahin/Projects/fastlanesample/fastlanesample.xcodeproj" time="0.776168">
+      <testcase classname="fastlane.lanes" name="5: xcodebuild -resolvePackageDependencies -scheme fastlanesample -project fastlanesample.xcodeproj" time="0.693493">
         
       </testcase>
     
       
-      <testcase classname="fastlane.lanes" name="6: scan" time="162.174547">
+      <testcase classname="fastlane.lanes" name="6: scan" time="118.996779">
         
       </testcase>
     

@@ -24,12 +24,12 @@ lane :ci_tests do
   # Swift Package Manager bağımlılıklarını çöz
   sh "xcodebuild -resolvePackageDependencies -scheme fastlanesample -project #{project_path}"
 
-  # ✅ Mevcut simülatörü dinamik olarak bul ve aç
+  # ✅ Mevcut iOS 17 simülatörlerini bul
   available_simulators = sh("xcrun simctl list devices available", print_command: false)
-  matched_simulator = available_simulators.match(/(iPhone [0-9]+|iPhone SE \([0-9]+\)) \((.*?)\) \(Shutdown\)/)
+  matched_simulator = available_simulators.match(/(iPhone 15) \((.*?)\) \(Shutdown\)/)
 
   if matched_simulator.nil?
-    UI.user_error!("❌ Uygun bir kapalı simülatör bulunamadı!")
+    UI.user_error!("❌ Uygun bir iOS 17 simülatörü bulunamadı!")
   end
 
   simulator_name = matched_simulator[1]
@@ -41,31 +41,24 @@ lane :ci_tests do
   sh "xcrun simctl boot #{simulator_udid}"
   puts "🚀 Simülatör başlatıldı: #{simulator_name}"
 
-  # 📌 Xcode'un simülatörü tam olarak tanımasını bekleyelim
+  # 📌 Simülatörün tamamen açılması için bekleyelim
   puts "⏳ Simülatörün tamamen açılması için bekleniyor..."
-  sleep(20) # ✅ Bekleme süresini artırdık
+  sleep(20)
 
   # 🔄 Xcode simülatör cache sıfırlanıyor
-  puts "🔄 Xcode simülatör cache sıfırlanıyor..."
-
-  # Tüm açık simülatörleri kapat (varsa)
   sh "xcrun simctl shutdown all || true"
-
-  # CoreSimulator Service'i sıfırla (hata yoksa devam et)
   sh "pgrep -x 'com.apple.CoreSimulator.CoreSimulatorService' && sudo killall -9 com.apple.CoreSimulator.CoreSimulatorService || true"
-
-  # Simulator'u sıfırla (yalnızca çalışan bir işlem varsa)
   sh "pgrep -x 'Simulator' && sudo killall -9 Simulator || true"
 
-  sleep(5) # Biraz bekleyelim
+  sleep(5)
 
-  # ✅ Xcode için derived data yolunu değiştiriyoruz
+  # ✅ Testleri çalıştır
   scan(
     scheme: "fastlanesample",
     clean: true,
     project: File.expand_path(project_path),
-    derived_data_path: "./fastlane/derivedData", # CI için uygun yol
-    destination: "platform=iOS Simulator,id=#{simulator_udid}"
+    derived_data_path: "./fastlane/derivedData",
+    destination: "platform=iOS Simulator,OS=17.2,name=iPhone 15" # iOS 18 değil, iOS 17 seçildi!
   )
 end
 

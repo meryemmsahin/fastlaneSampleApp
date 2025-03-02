@@ -6,16 +6,24 @@ platform :ios do
   ENV["FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT"] = "60"
   ENV["FASTLANE_XCODEBUILD_SETTINGS_RETRIES"] = "6"
 
+  # Terminale mevcut dizini ve dosyaları yazdır
   sh "pwd"
   sh "ls -la"
   sh "find . -name '*.xcodeproj'"
 
-  sh "xcodebuild -resolvePackageDependencies -scheme fastlanesample -project ./fastlanesample.xcodeproj"
+  # Proje yolunu açıkça belirtiyoruz
+  project_path = Dir.glob("*.xcodeproj").first
+  UI.user_error!("❌ Xcode project not found!") if project_path.nil?
+
+  puts "✅ Xcode project found at: #{project_path}"
+
+  # Swift Package Manager bağımlılıklarını çöz
+  sh "xcodebuild -resolvePackageDependencies -scheme fastlanesample -project #{project_path}"
 
   scan(
     scheme: "fastlanesample",
     clean: true,
-    project: "./fastlanesample.xcodeproj",
+    project: "#{project_path}",
     destination: "platform=iOS Simulator,id=71D594E0-3E1E-4C31-AFB9-DFEE3E99586F"
   )
 end

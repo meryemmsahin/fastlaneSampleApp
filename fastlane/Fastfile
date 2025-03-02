@@ -3,6 +3,11 @@ default_platform(:ios)
 platform :ios do
   desc "Pull Request açıldığında unit testleri çalıştırır"
   lane :ci_tests do
+    ENV["FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT"] = "60"
+    ENV["FASTLANE_XCODEBUILD_SETTINGS_RETRIES"] = "6"
+    
+    sh "xcodebuild -resolvePackageDependencies -scheme fastlanesample -project ./fastlanesample.xcodeproj"
+    
     scan(
       scheme: "fastlanesample",
       clean: true,

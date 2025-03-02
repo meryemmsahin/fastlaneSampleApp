@@ -23,8 +23,7 @@ jobs:
         run: |
           echo "Current Directory:" && pwd
           echo "Listing files:" && ls -la
-          echo "Searching for .xcodeproj files:"
-          find . -name '*.xcodeproj'
+          echo "Searching for .xcodeproj files:" && find . -name '*.xcodeproj'
 
       - name: Select Xcode 16.2
         run: |

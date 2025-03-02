@@ -58,7 +58,7 @@ lane :ci_tests do
     clean: true,
     project: File.expand_path(project_path),
     derived_data_path: "./fastlane/derivedData",
-    destination: "platform=iOS Simulator,OS=latest,name=iPhone 15"
+    destination: "platform=iOS Simulator,OS=17.2,name=iPhone 15"
   )
 end
 

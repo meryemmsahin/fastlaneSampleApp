@@ -66,13 +66,18 @@ jobs:
         run: xcrun simctl list devices available
 
       - name: Run Unit Tests on iPhone 15 (iOS 17.2)
-        run: fastlane ci_tests
-        env:
-          SIMULATOR_UDID: "$(
-            xcrun simctl list devices available |
-            grep 'iPhone 15' | grep '17.2' |
-            grep '(Shutdown)' | awk '{print $NF}' | tr -d '()'
-          )"
+        run: |
+         UDID="$(xcrun simctl list devices available |
+           grep 'iPhone 15 (' | grep '(17.2)' |
+           awk '{print $NF}' | tr -d '()')"
+
+         if [ -z "$UDID" ]; then
+         echo "❌ Simülatör ID bulunamadı!"
+         exit 1
+         fi
+
+         echo "✅ Kullanılan Simülatör: $UDID"
+         SIMULATOR_UDID=$UDID fastlane ci_tests
 
   deploy-firebase:
     name: Deploy to Firebase (Develop)

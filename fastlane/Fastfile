@@ -2,36 +2,44 @@ default_platform(:ios)
 
 platform :ios do
   desc "Pull Request açıldığında unit testleri çalıştırır"
-lane :ci_tests do
-  ENV["FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT"] = "60"
-  ENV["FASTLANE_XCODEBUILD_SETTINGS_RETRIES"] = "6"
+  lane :ci_tests do
+    ENV["FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT"] = "60"
+    ENV["FASTLANE_XCODEBUILD_SETTINGS_RETRIES"] = "6"
 
-  # Fastlane'in çalıştığı ana dizini bul
-  root_path = sh("git rev-parse --show-toplevel", print_command: false).strip
-  Dir.chdir(root_path)
+    root_path = sh("git rev-parse --show-toplevel", print_command: false).strip
+    Dir.chdir(root_path)
 
-  # Mevcut dizini yazdır
-  sh "pwd"
-  sh "ls -la"
-  sh "find . -name '*.xcodeproj'"
+    sh "pwd"
+    sh "ls -la"
+    sh "find . -name '*.xcodeproj'"
 
-  # Proje yolunu bul
-  project_path = Dir.glob("*.xcodeproj").first
-  UI.user_error!("❌ Xcode project not found!") if project_path.nil?
+    project_path = Dir.glob("*.xcodeproj").first
+    UI.user_error!("❌ Xcode project not found!") if project_path.nil?
 
-  puts "✅ Xcode project found at: #{project_path}"
+    puts "✅ Xcode project found at: #{project_path}"
 
-  # Swift Package Manager bağımlılıklarını çöz
-  sh "xcodebuild -resolvePackageDependencies -scheme fastlanesample -project #{project_path}"
+    # Swift Package Manager bağımlılıklarını çöz
+    sh "xcodebuild -resolvePackageDependencies -scheme fastlanesample -project #{project_path}"
 
-scan(
-  scheme: "fastlanesample",
-  clean: true,
-  project: File.expand_path(project_path),
-  derived_data_path: "./fastlane/derivedData",
-  destination: "platform=iOS Simulator,id=BA9D659C-B024-406D-9EB2-93750D293066"
-)
-end
+    # Dinamik Simülatör Seçimi
+    available_simulators = sh("xcrun simctl list devices available", print_command: false)
+    matched_simulator = available_simulators.match(/(iPhone\s15).*?\((.*?)\)/)
+
+    if matched_simulator.nil?
+      UI.user_error!("❌ No available iPhone 15 simulator found!")
+    end
+
+    simulator_udid = matched_simulator[2]
+    puts "✅ Using simulator with UDID: #{simulator_udid}"
+
+    scan(
+      scheme: "fastlanesample",
+      clean: true,
+      project: File.expand_path(project_path),
+      derived_data_path: "./fastlane/derivedData",
+      destination: "platform=iOS Simulator,id=#{simulator_udid}"
+    )
+  end
 
   desc "Develop branch'ine pushlandığında Firebase'e deploy eder"
   lane :deploy_to_firebase do
@@ -42,8 +50,8 @@ end
     
     firebase_app_distribution(
       app: ENV["FIREBASE_APP_ID"],
-      testers: ENV["FIREBASE_TESTERS"], # Tek tek e-posta adresleri
-      groups: ENV["FIREBASE_GROUPS"],   # Eğer grup kullanıyorsan
+      testers: ENV["FIREBASE_TESTERS"],
+      groups: ENV["FIREBASE_GROUPS"],
       release_notes: "Yeni build develop branch'inden gönderildi!"
     )
   end
@@ -51,9 +59,9 @@ end
   desc "Main branch'ine pushlandığında TestFlight'a gönderir"
   lane :deploy_to_testflight do
     app_store_connect_api_key(
-      key_id: ENV["APP_STORE_KEY_ID"],       # API Key ID
-      issuer_id: ENV["APP_STORE_ISSUER_ID"], # Apple Issuer ID
-      key_content: ENV["APP_STORE_API_KEY"], # Base64 kodlanmış API Key içeriği
+      key_id: ENV["APP_STORE_KEY_ID"],
+      issuer_id: ENV["APP_STORE_ISSUER_ID"],
+      key_content: ENV["APP_STORE_API_KEY"],
       in_house: false
     )
 

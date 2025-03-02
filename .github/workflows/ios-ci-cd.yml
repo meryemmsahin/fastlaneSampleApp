@@ -36,6 +36,15 @@ jobs:
           sudo xcode-select -s \
           /Applications/Xcode_16.2.app/Contents/Developer
 
+      - name: Check Available Xcode SDKs
+        run: xcodebuild -showsdks
+
+      - name: Install iOS 17.2 Simulator
+        run: sudo xcodebuild -downloadPlatform iOS
+
+      - name: Boot iOS Simulator
+        run: xcrun simctl boot BA9D659C-B024-406D-9EB2-93750D293066
+
       - name: Setup Ruby and Fastlane
         uses: ruby/setup-ruby@v1
         with:

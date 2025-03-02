@@ -38,15 +38,20 @@ jobs:
 
       - name: Install Fastlane Dependencies
         run: |
-          [ -f Gemfile ] && bundle install || gem install fastlane
+          if [ -f Gemfile ]; then
+            bundle install
+          else
+            gem install fastlane
+          fi
 
       - name: List Available Simulators
         run: xcrun simctl list devices available --json
 
       - name: Boot iPhone 15 (iOS 17.2) Simulator
         run: |
-          UDID=$(xcrun simctl list devices available | awk \
-            '/iPhone 15 \(/ && /17.2/ {print $NF}' | tr -d '()')
+          UDID=$(xcrun simctl list devices available --json | \
+            jq -r '.devices."com.apple.CoreSimulator.SimRuntime.iOS-17-2"[] |
+            select(.name == "iPhone 15") | .udid')
           if [ -z "$UDID" ]; then
             echo "❌ Simulator not found!" && exit 1
           fi
@@ -79,7 +84,11 @@ jobs:
 
       - name: Install Fastlane Dependencies
         run: |
-          [ -f Gemfile ] && bundle install || gem install fastlane
+          if [ -f Gemfile ]; then
+            bundle install
+          else
+            gem install fastlane
+          fi
 
       - name: Deploy to Firebase App Distribution
         run: fastlane deploy_to_firebase
@@ -112,7 +121,11 @@ jobs:
 
       - name: Install Fastlane Dependencies
         run: |
-          [ -f Gemfile ] && bundle install || gem install fastlane
+          if [ -f Gemfile ]; then
+            bundle install
+          else
+            gem install fastlane
+          fi
 
       - name: Decode App Store API Key
         run: |

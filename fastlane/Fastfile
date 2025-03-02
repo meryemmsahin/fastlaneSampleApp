@@ -2,36 +2,42 @@ default_platform(:ios)
 
 platform :ios do
   desc "Pull Request açıldığında unit testleri çalıştırır"
- lane :ci_tests do
-  ENV["FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT"] = "60"
-  ENV["FASTLANE_XCODEBUILD_SETTINGS_RETRIES"] = "6"
+  lane :ci_tests do
+    ENV["FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT"] = "60"
+    ENV["FASTLANE_XCODEBUILD_SETTINGS_RETRIES"] = "6"
 
-  # Fastlane'in çalıştığı ana dizini bul
-  root_path = sh("git rev-parse --show-toplevel", print_command: false).strip
-  Dir.chdir(root_path)
+    # Fastlane'in çalıştığı ana dizini bul
+    root_path = sh("git rev-parse --show-toplevel", print_command: false).strip
+    Dir.chdir(root_path)
 
-  # Mevcut dizini yazdır
-  sh "pwd"
-  sh "ls -la"
-  sh "find . -name '*.xcodeproj'"
+    # Mevcut dizini yazdır
+    sh "pwd"
+    sh "ls -la"
+    sh "find . -name '*.xcodeproj'"
 
-  # Proje yolunu bul
-  project_path = Dir.glob("*.xcodeproj").first
-  UI.user_error!("❌ Xcode project not found!") if project_path.nil?
+    # Proje yolunu bul
+    project_path = Dir.glob("*.xcodeproj").first
+    UI.user_error!("❌ Xcode project not found!") if project_path.nil?
 
-  puts "✅ Xcode project found at: #{project_path}"
+    puts "✅ Xcode project found at: #{project_path}"
 
-  # Swift Package Manager bağımlılıklarını çöz
-  sh "xcodebuild -resolvePackageDependencies -scheme fastlanesample -project #{project_path}"
+    # Swift Package Manager bağımlılıklarını çöz
+    sh "xcodebuild -resolvePackageDependencies -scheme fastlanesample -project #{project_path}"
 
-  # 📌 `scan` için doğru yolu belirtiyoruz
-  scan(
-    scheme: "fastlanesample",
-    clean: true,
-    project: File.expand_path(project_path), # 🔴 Mutlak yol kullanıyoruz
-    destination: "platform=iOS Simulator,id=71D594E0-3E1E-4C31-AFB9-DFEE3E99586F"
-  )
-end
+    # 📌 Kullanılabilir en güncel iPhone simülatörünü otomatik seç
+    simulators = `xcrun simctl list devices available | grep 'iPhone' | grep '(17' | tail -1`
+    simulator_name = simulators.match(/(iPhone \d+ \w+)/)[1] rescue "iPhone 15"
+
+    UI.important("📱 Kullanılacak Simülatör: #{simulator_name}")
+
+    # 📌 `scan` için doğru yolu belirtiyoruz
+    scan(
+      scheme: "fastlanesample",
+      clean: true,
+      project: File.expand_path(project_path), # 🔴 Mutlak yol kullanıyoruz
+      destination: "platform=iOS Simulator,name=#{simulator_name}" # 🔥 Dinamik Simülatör Seçimi
+    )
+  end
 
   desc "Develop branch'ine pushlandığında Firebase'e deploy eder"
   lane :deploy_to_firebase do

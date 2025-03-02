@@ -41,7 +41,14 @@ platform :ios do
   sh "xcrun simctl boot #{simulator_udid}"
   puts "🚀 Simülatör başlatıldı: #{simulator_name}"
 
-  # Xcode'un simülatörü görmesini beklemek için 5 saniye gecikme ekleyelim
+  # 📌 Xcode'un simülatörü tam olarak tanımasını bekleyelim
+  puts "⏳ Simülatörün tamamen açılması için bekleniyor..."
+  sleep(30) # ⏳ Bekleme süresini 15 saniyeye çıkardık
+
+  # 📌 Xcode'u simülatörü tanıyacak şekilde resetle
+  puts "🔄 Xcode simülatör cache sıfırlanıyor..."
+  sh "sudo killall -9 com.apple.CoreSimulator.CoreSimulatorService"
+  sh "sudo killall -9 Simulator"
   sleep(5)
 
   # ✅ Xcode için derived data yolunu değiştiriyoruz

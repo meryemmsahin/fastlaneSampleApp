@@ -37,6 +37,9 @@ jobs:
             gem install fastlane
           fi
 
+      - name: Change Directory to Project
+        run: cd Projects/fastlanesample
+
       - name: Run Unit Tests
         run: fastlane ci_tests
 

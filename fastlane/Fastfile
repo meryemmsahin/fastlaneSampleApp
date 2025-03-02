@@ -6,8 +6,12 @@ platform :ios do
     ENV["FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT"] = "60"
     ENV["FASTLANE_XCODEBUILD_SETTINGS_RETRIES"] = "6"
     
-    sh "xcodebuild -resolvePackageDependencies -scheme fastlanesample -project ./fastlanesample.xcodeproj"
+    sh "cd Projects/fastlanesample"
+    sh "pwd"
+    sh "ls -la"
     
+    sh "xcodebuild -resolvePackageDependencies -scheme fastlanesample -project ./fastlanesample.xcodeproj"
+        
     scan(
       scheme: "fastlanesample",
       clean: true,

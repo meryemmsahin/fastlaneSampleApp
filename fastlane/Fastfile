@@ -3,20 +3,22 @@ default_platform(:ios)
 platform :ios do
   desc "Pull Request açıldığında unit testleri çalıştırır"
   lane :ci_tests do
-    ENV["FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT"] = "60"
-    ENV["FASTLANE_XCODEBUILD_SETTINGS_RETRIES"] = "6"
-    
-    sh "pwd"
-    sh "ls -la"
-    
-    sh "xcodebuild -resolvePackageDependencies -scheme fastlanesample -project fastlanesample.xcodeproj"
-        
-    scan(
-      scheme: "fastlanesample",
-      clean: true,
-      destination: "platform=iOS Simulator,id=71D594E0-3E1E-4C31-AFB9-DFEE3E99586F"
-    )
-  end
+  ENV["FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT"] = "60"
+  ENV["FASTLANE_XCODEBUILD_SETTINGS_RETRIES"] = "6"
+
+  sh "pwd"
+  sh "ls -la"
+  sh "find . -name '*.xcodeproj'"
+
+  sh "xcodebuild -resolvePackageDependencies -scheme fastlanesample -project fastlanesample/fastlanesample.xcodeproj"
+
+  scan(
+    scheme: "fastlanesample",
+    clean: true,
+    project: "fastlanesample/fastlanesample.xcodeproj",
+    destination: "platform=iOS Simulator,id=71D594E0-3E1E-4C31-AFB9-DFEE3E99586F"
+  )
+end
 
   desc "Develop branch'ine pushlandığında Firebase'e deploy eder"
   lane :deploy_to_firebase do

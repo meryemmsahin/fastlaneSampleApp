@@ -22,6 +22,9 @@ jobs:
       - name: Print Current Directory
         run: pwd && ls -la
 
+      - name: Check Xcode Project Files
+        run: find . -name "*.xcodeproj"
+
       - name: Select Xcode 16.2
         run: |
           sudo xcode-select -s \

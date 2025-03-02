@@ -24,18 +24,25 @@ platform :ios do
   # Swift Package Manager bağımlılıklarını çöz
   sh "xcodebuild -resolvePackageDependencies -scheme fastlanesample -project #{project_path}"
 
-  # ✅ Mevcut simülatörü dinamik olarak bul
+  # ✅ Mevcut simülatörü dinamik olarak bul ve aç
   available_simulators = sh("xcrun simctl list devices available", print_command: false)
-  matched_simulator = available_simulators.match(/(iPhone [0-9]+|iPhone SE \([0-9]+\)) \((.*?)\) \[.*\]/)
+  matched_simulator = available_simulators.match(/(iPhone [0-9]+|iPhone SE \([0-9]+\)) \((.*?)\) \(Shutdown\)/)
 
   if matched_simulator.nil?
-    UI.user_error!("❌ Uygun bir iOS simülatörü bulunamadı!")
+    UI.user_error!("❌ Uygun bir kapalı simülatör bulunamadı!")
   end
 
   simulator_name = matched_simulator[1]
   simulator_udid = matched_simulator[2]
 
   puts "✅ Kullanılacak Simülatör: #{simulator_name} (UDID: #{simulator_udid})"
+
+  # Simülatörü başlat
+  sh "xcrun simctl boot #{simulator_udid}"
+  puts "🚀 Simülatör başlatıldı: #{simulator_name}"
+
+  # Xcode'un simülatörü görmesini beklemek için 5 saniye gecikme ekleyelim
+  sleep(5)
 
   # ✅ Xcode için derived data yolunu değiştiriyoruz
   scan(

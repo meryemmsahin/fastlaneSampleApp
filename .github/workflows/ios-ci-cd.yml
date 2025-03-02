@@ -31,16 +31,6 @@ jobs:
           sudo xcode-select -s \
             /Applications/Xcode_16.2.app/Contents/Developer
 
-      - name: Ensure iOS 17.2 Simulator is Installed
-        run: |
-          sudo xcodebuild -runFirstLaunch
-          sudo xcodebuild -downloadPlatform iOS ||
-            echo "iOS Platform already installed"
-          sudo xcrun simctl create "iPhone 15" \
-            com.apple.CoreSimulator.SimDeviceType.iPhone-15 \
-            com.apple.CoreSimulator.SimRuntime.iOS-17-2 ||
-            echo "Simulator already exists"
-
       - name: Setup Ruby and Fastlane
         uses: ruby/setup-ruby@v1
         with:
@@ -51,7 +41,7 @@ jobs:
           [ -f Gemfile ] && bundle install || gem install fastlane
 
       - name: List Available Simulators
-        run: xcrun simctl list devices available
+        run: xcrun simctl list devices available --json
 
       - name: Boot iPhone 15 (iOS 17.2) Simulator
         run: |

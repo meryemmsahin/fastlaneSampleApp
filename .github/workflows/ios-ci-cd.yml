@@ -65,14 +65,14 @@ jobs:
       - name: List Available Simulators
         run: xcrun simctl list devices available
 
-      - name: Run Unit Tests on iPhone 15 (iOS 17.2)
+      - name: Run Unit Tests on iPhone 15 (iOS 18.2)
         run: fastlane ci_tests
         env:
           SIMULATOR_UDID: "$(
             xcrun simctl list devices available |
-            grep 'iPhone 15' | grep '(Shutdown)' |
+            grep 'iPhone 15' | grep '(Shutdown)' | 
             awk '{print $NF}' | tr -d '()'
-        )"
+          )"
 
   deploy-firebase:
     name: Deploy to Firebase (Develop)

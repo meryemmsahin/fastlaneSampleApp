@@ -1,60 +1,104 @@
 name: iOS CI/CD Pipeline
 
 on:
-  pull_request:
-    branches:
-      - develop
-      - main
   push:
     branches:
       - develop
+      - release/*
       - main
+  pull_request:
+    branches:
+      - develop
 
 jobs:
   tests:
     name: Run Unit Tests
     runs-on: macos-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Ruby
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Select Xcode 16.2
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+
+      - name: Setup Ruby and Fastlane
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.0
-      - name: Install Bundler
-        run: gem install bundler
-      - name: Install Fastlane
-        run: bundle install
+
+      - name: Install Fastlane Dependencies
+        run: |
+          if [ -f Gemfile ]; then
+            bundle install
+          else
+            gem install fastlane
+          fi
+
       - name: Run Unit Tests
         run: fastlane run_tests
 
-  deploy:
-    name: Deploy
-    needs: tests
+  deploy-firebase:
+    name: Deploy to Firebase (Develop)
     runs-on: macos-latest
+    if: github.ref == 'refs/heads/develop'
+
     steps:
-      - uses: actions/checkout@v3
-      - name: Set up Ruby
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Select Xcode 16.2
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+
+      - name: Setup Ruby and Fastlane
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.0
-      - name: Install Bundler
-        run: gem install bundler
-      - name: Install Fastlane
-        run: bundle install
 
-      - name: Decode App Store API Key
-        run: echo "${{ secrets.APP_STORE_API_KEY }}" | base64 --decode > AuthKey.p8
+      - name: Install Fastlane Dependencies
+        run: |
+          if [ -f Gemfile ]; then
+            bundle install
+          else
+            gem install fastlane
+          fi
 
-      - name: Deploy to Firebase (Develop)
-        if: github.ref == 'refs/heads/develop'
+      - name: Deploy to Firebase App Distribution
         run: fastlane deploy_to_firebase
         env:
           FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
           FIREBASE_TESTERS: ${{ secrets.FIREBASE_TESTERS }}
           FIREBASE_GROUPS: ${{ secrets.FIREBASE_GROUPS }}
+          FIREBASE_APP_DISTRIBUTION_CLI_TOKEN: ${{ secrets.FIREBASE_APP_DISTRIBUTION_CLI_TOKEN }}
 
-      - name: Deploy to TestFlight (Main)
-        if: github.ref == 'refs/heads/main'
+  deploy-testflight:
+    name: Deploy to TestFlight (Main & Release)
+    runs-on: macos-latest
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/heads/release/')
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Select Xcode 16.2
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+
+      - name: Setup Ruby and Fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.0
+
+      - name: Install Fastlane Dependencies
+        run: |
+          if [ -f Gemfile ]; then
+            bundle install
+          else
+            gem install fastlane
+          fi
+
+      - name: Decode App Store API Key
+        run: echo "${{ secrets.APP_STORE_API_KEY }}" | base64 --decode > AuthKey.p8
+
+      - name: Deploy to TestFlight
         run: fastlane deploy_to_testflight
         env:
           APP_STORE_KEY_ID: ${{ secrets.APP_STORE_KEY_ID }}

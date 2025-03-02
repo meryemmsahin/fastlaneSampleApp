@@ -1,69 +1,103 @@
 default_platform(:ios)
 
 platform :ios do
-  desc "Test Ortamı için Firebase App Distribution'a Yükleme"
-  lane :qa do
-    increment_build_number(xcodeproj: "fastlanesample.xcodeproj")
+  desc "Pull Request açıldığında unit testleri çalıştırır"
+lane :ci_tests do
+  ENV["FASTLANE_XCODEBUILD_SETTINGS_TIMEOUT"] = "60"
+  ENV["FASTLANE_XCODEBUILD_SETTINGS_RETRIES"] = "6"
 
+  # Fastlane'in çalıştığı ana dizini bul
+  root_path = sh("git rev-parse --show-toplevel", print_command: false).strip
+  Dir.chdir(root_path)
+
+  # Mevcut dizini yazdır
+  sh "pwd"
+  sh "ls -la"
+  sh "find . -name '*.xcodeproj'"
+
+  # Proje yolunu bul
+  project_path = Dir.glob("*.xcodeproj").first
+  UI.user_error!("❌ Xcode project not found!") if project_path.nil?
+
+  puts "✅ Xcode project found at: #{project_path}"
+
+  # Swift Package Manager bağımlılıklarını çöz
+  sh "xcodebuild -resolvePackageDependencies -scheme fastlanesample -project #{project_path}"
+
+  # ✅ Mevcut simülatörü dinamik olarak bul ve aç
+  available_simulators = sh("xcrun simctl list devices available", print_command: false)
+  matched_simulator = available_simulators.match(/(iPhone [0-9]+|iPhone SE \([0-9]+\)) \((.*?)\) \(Shutdown\)/)
+
+  if matched_simulator.nil?
+    UI.user_error!("❌ Uygun bir kapalı simülatör bulunamadı!")
+  end
+
+  simulator_name = matched_simulator[1]
+  simulator_udid = matched_simulator[2]
+
+  puts "✅ Kullanılacak Simülatör: #{simulator_name} (UDID: #{simulator_udid})"
+
+  # Simülatörü başlat
+  sh "xcrun simctl boot #{simulator_udid}"
+  puts "🚀 Simülatör başlatıldı: #{simulator_name}"
+
+  # 📌 Xcode'un simülatörü tam olarak tanımasını bekleyelim
+  puts "⏳ Simülatörün tamamen açılması için bekleniyor..."
+  sleep(20) # ✅ Bekleme süresini artırdık
+
+  # 🔄 Xcode simülatör cache sıfırlanıyor
+  puts "🔄 Xcode simülatör cache sıfırlanıyor..."
+
+  # Tüm açık simülatörleri kapat (varsa)
+  sh "xcrun simctl shutdown all || true"
+
+  # CoreSimulator Service'i sıfırla (hata yoksa devam et)
+  sh "pgrep -x 'com.apple.CoreSimulator.CoreSimulatorService' && sudo killall -9 com.apple.CoreSimulator.CoreSimulatorService || true"
+
+  # Simulator'u sıfırla (yalnızca çalışan bir işlem varsa)
+  sh "pgrep -x 'Simulator' && sudo killall -9 Simulator || true"
+
+  sleep(5) # Biraz bekleyelim
+
+  # ✅ Xcode için derived data yolunu değiştiriyoruz
+  scan(
+    scheme: "fastlanesample",
+    clean: true,
+    project: File.expand_path(project_path),
+    derived_data_path: "./fastlane/derivedData", # CI için uygun yol
+    destination: "platform=iOS Simulator,id=#{simulator_udid}"
+  )
+end
+
+  desc "Develop branch'ine pushlandığında Firebase'e deploy eder"
+  lane :deploy_to_firebase do
+    build_app(
+      scheme: "fastlanesample",
+      export_method: "development"
+    )
+    
+    firebase_app_distribution(
+      app: ENV["FIREBASE_APP_ID"],
+      testers: ENV["FIREBASE_TESTERS"], # Tek tek e-posta adresleri
+      groups: ENV["FIREBASE_GROUPS"],   # Eğer grup kullanıyorsan
+      release_notes: "Yeni build develop branch'inden gönderildi!"
+    )
+  end
+
+  desc "Main branch'ine pushlandığında TestFlight'a gönderir"
+  lane :deploy_to_testflight do
     app_store_connect_api_key(
-      key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
-      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
-      key_content: File.read("./AuthKey_TT9YC58NX8.p8"),
-      is_key_content_base64: false,
+      key_id: ENV["APP_STORE_KEY_ID"],       # API Key ID
+      issuer_id: ENV["APP_STORE_ISSUER_ID"], # Apple Issuer ID
+      key_content: ENV["APP_STORE_API_KEY"], # Base64 kodlanmış API Key içeriği
       in_house: false
     )
 
     build_app(
       scheme: "fastlanesample",
-      export_method: "development",
-      export_options: {
-        provisioningProfiles: {
-          "tr.com.meryem.fastlanesample" => "fastlaneProfile1"
-        },
-        signingStyle: "manual",
-        signingCertificate: "Apple Development",
-        teamID: ENV["APPLE_TEAM_ID"]
-      }
+      export_method: "app-store"
     )
-  end
-
-  desc "Beta Testi için TestFlight Dağıtımı"
-  lane :beta do
-    increment_build_number(xcodeproj: "fastlanesample.xcodeproj")
-
-    build_app(
-      scheme: "fastlanesample",
-      export_method: "app-store",
-      export_options: {
-        provisioningProfiles: {
-          "tr.com.meryem.fastlanesample" => "fastlaneProvisioningProfile"
-        },
-        signingStyle: "manual",
-        signingCertificate: "Apple Distribution",
-        teamID: ENV["APPLE_TEAM_ID"]
-      }
-    )
-
+    
     upload_to_testflight
-  end
-
-  desc "Production için App Store Yayınlama"
-  lane :release do
-    increment_build_number(xcodeproj: "fastlanesample.xcodeproj")
-
-    build_app(
-      scheme: "fastlanesample",
-      export_method: "app-store",
-      export_options: {
-        provisioningProfiles: {
-          "tr.com.meryem.fastlanesample" => "fastlaneProvisioningProfile"
-        },
-        signingStyle: "manual",
-        signingCertificate: "Apple Distribution",
-        teamID: ENV["APPLE_TEAM_ID"]
-      }
-    )
-
-    upload_to_app_store
   end
 end

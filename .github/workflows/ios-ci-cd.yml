@@ -1,33 +1,70 @@
+---
 name: iOS CI/CD Pipeline
 
 on:
   push:
     branches:
       - develop
-      - release/*
+      - "release/*"
       - main
   pull_request:
     branches:
       - develop
 
 jobs:
-  deploy-qa:
-    name: Deploy to Firebase (QA)
+  tests:
+    name: Run Unit Tests
     runs-on: macos-latest
-    if: github.ref == 'refs/heads/develop' || github.event_name == 'pull_request'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+
+      - name: Print Current Directory
+        run: |
+          echo "Current Directory:"
+          pwd
+          echo "Listing files:"
+          ls -la
+          echo "Searching for .xcodeproj files:"
+          find . -name '*.xcodeproj'
+
+      - name: Check Xcode Project Files
+        run: find . -name "*.xcodeproj"
+
+      - name: Select Xcode 16.2
+        run: |
+          sudo xcode-select -s \
+          /Applications/Xcode_16.2.app/Contents/Developer
+
+      - name: Setup Ruby and Fastlane
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.0
+
+      - name: Install Fastlane Dependencies
+        run: |
+          if [ -f Gemfile ]; then
+            bundle install
+          else
+            gem install fastlane
+          fi
+
+      - name: Run Unit Tests
+        run: fastlane ci_tests
+
+  deploy-firebase:
+    name: Deploy to Firebase (Develop)
+    runs-on: macos-latest
+    if: github.ref == 'refs/heads/develop'
 
     steps:
-      - name: Debug Environment Variables
-        run: |
-          echo "APP_STORE_CONNECT_KEY_ID=${{ secrets.APP_STORE_CONNECT_KEY_ID }}"
-          echo "APP_STORE_CONNECT_ISSUER_ID=${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}"
-          echo "APP_STORE_CONNECT_API_KEY (Length): $(echo ${{ secrets.APP_STORE_CONNECT_API_KEY }} | wc -c)"
-
       - name: Checkout Repository
         uses: actions/checkout@v3
 
       - name: Select Xcode 16.2
-        run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+        run: |
+          sudo xcode-select -s \
+          /Applications/Xcode_16.2.app/Contents/Developer
 
       - name: Setup Ruby and Fastlane
         uses: ruby/setup-ruby@v1
@@ -43,24 +80,29 @@ jobs:
           fi
 
       - name: Deploy to Firebase App Distribution
-        run: fastlane qa
+        run: fastlane deploy_to_firebase
         env:
-          FIREBASE_APP_DISTRIBUTION_CLI_TOKEN: ${{ secrets.FIREBASE_APP_DISTRIBUTION_CLI_TOKEN }}
-          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
-          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          FIREBASE_TESTERS: ${{ secrets.FIREBASE_TESTERS }}
+          FIREBASE_GROUPS: ${{ secrets.FIREBASE_GROUPS }}
+          FIREBASE_APP_DISTRIBUTION_CLI_TOKEN: |
+            ${{ secrets.FIREBASE_APP_DISTRIBUTION_CLI_TOKEN }}
 
-  deploy-beta:
-    name: Deploy to TestFlight (Beta)
+  deploy-testflight:
+    name: Deploy to TestFlight (Main & Release)
     runs-on: macos-latest
-    if: startsWith(github.ref, 'refs/heads/release/')
+    if: |
+      github.ref == 'refs/heads/main' ||
+      startsWith(github.ref, 'refs/heads/release/')
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
       - name: Select Xcode 16.2
-        run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+        run: |
+          sudo xcode-select -s \
+          /Applications/Xcode_16.2.app/Contents/Developer
 
       - name: Setup Ruby and Fastlane
         uses: ruby/setup-ruby@v1
@@ -74,42 +116,15 @@ jobs:
           else
             gem install fastlane
           fi
+
+      - name: Decode App Store API Key
+        run: |
+          echo "${{ secrets.APP_STORE_API_KEY }}" |
+          base64 --decode > AuthKey.p8
 
       - name: Deploy to TestFlight
-        run: fastlane beta
+        run: fastlane deploy_to_testflight
         env:
-          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
-          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
-
-  deploy-release:
-    name: Deploy to App Store (Production)
-    runs-on: macos-latest
-    if: github.ref == 'refs/heads/main'
-
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v3
-
-      - name: Select Xcode 16.2
-        run: sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
-
-      - name: Setup Ruby and Fastlane
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: 3.0
-
-      - name: Install Fastlane Dependencies
-        run: |
-          if [ -f Gemfile ]; then
-            bundle install
-          else
-            gem install fastlane
-          fi
-
-      - name: Deploy to App Store
-        run: fastlane release
-        env:
-          APP_STORE_CONNECT_API_KEY: ${{ secrets.APP_STORE_CONNECT_API_KEY }}
-          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_KEY_ID: ${{ secrets.APP_STORE_KEY_ID }}
+          APP_STORE_ISSUER_ID: ${{ secrets.APP_STORE_ISSUER_ID }}
+          APP_STORE_API_KEY: AuthKey.p8

@@ -1,69 +1,44 @@
 default_platform(:ios)
 
 platform :ios do
-  desc "Test Ortamı için Firebase App Distribution'a Yükleme"
-  lane :qa do
-    increment_build_number(xcodeproj: "fastlanesample.xcodeproj")
+  desc "Pull Request açıldığında unit testleri çalıştırır"
+  lane :run_tests do
+    scan(
+      scheme: "fastlanesample",
+      clean: true,
+      output_directory: "fastlane/test_output"
+    )
+  end
 
+  desc "Develop branch'ine pushlandığında Firebase'e deploy eder"
+  lane :deploy_to_firebase do
+    build_app(
+      scheme: "fastlanesample",
+      export_method: "development"
+    )
+    
+    firebase_app_distribution(
+      app: ENV["FIREBASE_APP_ID"],
+      testers: ENV["FIREBASE_TESTERS"], # Tek tek e-posta adresleri
+      groups: ENV["FIREBASE_GROUPS"],   # Eğer grup kullanıyorsan
+      release_notes: "Yeni build develop branch'inden gönderildi!"
+    )
+  end
+
+  desc "Main branch'ine pushlandığında TestFlight'a gönderir"
+  lane :deploy_to_testflight do
     app_store_connect_api_key(
-      key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
-      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
-      key_content: File.read("./AuthKey_TT9YC58NX8.p8"),
-      is_key_content_base64: false,
+      key_id: ENV["APP_STORE_KEY_ID"],       # API Key ID
+      issuer_id: ENV["APP_STORE_ISSUER_ID"], # Apple Issuer ID
+      key_content: ENV["APP_STORE_API_KEY"], # Base64 kodlanmış API Key içeriği
       in_house: false
     )
 
     build_app(
       scheme: "fastlanesample",
-      export_method: "development",
-      export_options: {
-        provisioningProfiles: {
-          "tr.com.meryem.fastlanesample" => "fastlaneProfile1"
-        },
-        signingStyle: "manual",
-        signingCertificate: "Apple Development",
-        teamID: ENV["APPLE_TEAM_ID"]
-      }
+      export_method: "app-store"
     )
-  end
-
-  desc "Beta Testi için TestFlight Dağıtımı"
-  lane :beta do
-    increment_build_number(xcodeproj: "fastlanesample.xcodeproj")
-
-    build_app(
-      scheme: "fastlanesample",
-      export_method: "app-store",
-      export_options: {
-        provisioningProfiles: {
-          "tr.com.meryem.fastlanesample" => "fastlaneProvisioningProfile"
-        },
-        signingStyle: "manual",
-        signingCertificate: "Apple Distribution",
-        teamID: ENV["APPLE_TEAM_ID"]
-      }
-    )
-
+    
     upload_to_testflight
-  end
-
-  desc "Production için App Store Yayınlama"
-  lane :release do
-    increment_build_number(xcodeproj: "fastlanesample.xcodeproj")
-
-    build_app(
-      scheme: "fastlanesample",
-      export_method: "app-store",
-      export_options: {
-        provisioningProfiles: {
-          "tr.com.meryem.fastlanesample" => "fastlaneProvisioningProfile"
-        },
-        signingStyle: "manual",
-        signingCertificate: "Apple Distribution",
-        teamID: ENV["APPLE_TEAM_ID"]
-      }
-    )
-
-    upload_to_app_store
   end
 end

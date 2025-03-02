@@ -19,6 +19,9 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v3
 
+      - name: Print Current Directory
+        run: pwd && ls -la
+
       - name: Select Xcode 16.2
         run: |
           sudo xcode-select -s \
@@ -36,9 +39,6 @@ jobs:
           else
             gem install fastlane
           fi
-
-      - name: Change Directory to Project
-        run: cd Projects/fastlanesample
 
       - name: Run Unit Tests
         run: fastlane ci_tests

@@ -29,7 +29,7 @@ scan(
   clean: true,
   project: File.expand_path(project_path),
   derived_data_path: "./fastlane/derivedData",
-  destination: "platform=iOS Simulator,OS=17.2,name=iPhone 15"
+  destination: "platform=iOS Simulator,id=BA9D659C-B024-406D-9EB2-93750D293066"
 )
 end
 

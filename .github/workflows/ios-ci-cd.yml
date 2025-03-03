@@ -25,11 +25,6 @@ jobs:
           echo "Listing files:" && ls -la
           echo "Searching for .xcodeproj files:" && find . -name '*.xcodeproj'
 
-      - name: Select Xcode 16.2
-        run: |
-          sudo xcode-select -s \
-            /Applications/Xcode_16.2.app/Contents/Developer
-
       - name: Setup Ruby and Fastlane
         uses: ruby/setup-ruby@v1
         with:
@@ -43,14 +38,9 @@ jobs:
             gem install fastlane
           fi
 
-      - name: Ensure iOS 18.2 Simulator is Installed
+      - name: Install iOS 18.2 SDK (if not installed)
         run: |
-          sudo xcodebuild -downloadPlatform iOS ||
-            echo "✅ iOS Platform already installed"
-          sudo xcrun simctl create "iPhone 15" \
-            com.apple.CoreSimulator.SimDeviceType.iPhone-15 \
-            com.apple.CoreSimulator.SimRuntime.iOS-18-2 ||
-            echo "✅ Simulator already exists"
+          sudo xcodebuild -downloadPlatform iOS --version 18.2 || echo
 
       - name: List Available Simulators
         run: xcrun simctl list devices available --json
@@ -79,11 +69,6 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
-
-      - name: Select Xcode 16.2
-        run: |
-          sudo xcode-select -s \
-            /Applications/Xcode_16.2.app/Contents/Developer
 
       - name: Setup Ruby and Fastlane
         uses: ruby/setup-ruby@v1
@@ -116,11 +101,6 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
-
-      - name: Select Xcode 16.2
-        run: |
-          sudo xcode-select -s \
-            /Applications/Xcode_16.2.app/Contents/Developer
 
       - name: Setup Ruby and Fastlane
         uses: ruby/setup-ruby@v1

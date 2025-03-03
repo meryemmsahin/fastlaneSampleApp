@@ -42,17 +42,17 @@ jobs:
             gem install fastlane
           fi
 
-      - name: Install iOS 18.3 Simulator
+      - name: Install iOS 17.2 Simulator
         run: |
-          sudo xcodebuild -downloadPlatform iOS || echo
+          sudo xcodebuild -downloadPlatform iOS || echo "✅ iOS Platform already installed"
 
       - name: List Available Simulators
         run: xcrun simctl list devices available --json
 
-      - name: Boot iPhone 15 (iOS 18.3) Simulator
+      - name: Boot iPhone 15 (iOS 17.2) Simulator
         run: |
           UDID=$(xcrun simctl list devices available --json | \
-            jq -r '.devices."com.apple.CoreSimulator.SimRuntime.iOS-18-3"[] |
+            jq -r '.devices."com.apple.CoreSimulator.SimRuntime.iOS-17-2"[] | 
             select(.name == "iPhone 15") | .udid')
           if [ -z "$UDID" ]; then
             echo "❌ Simulator not found!" && exit 1
@@ -61,7 +61,7 @@ jobs:
           xcrun simctl boot "$UDID"
           echo "SIMULATOR_UDID=$UDID" >> $GITHUB_ENV
 
-      - name: Run Unit Tests on iPhone 15 (iOS 18.3)
+      - name: Run Unit Tests on iPhone 15 (iOS 17.2)
         run: fastlane ci_tests
         env:
           SIMULATOR_UDID: ${{ env.SIMULATOR_UDID }}

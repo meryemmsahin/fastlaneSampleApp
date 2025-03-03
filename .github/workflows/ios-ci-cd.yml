@@ -43,8 +43,14 @@ jobs:
             gem install fastlane
           fi
 
-      - name: Check Installed Xcode SDKs
-        run: xcodebuild -showsdks
+      - name: Ensure iOS 18.2 Simulator is Installed
+        run: |
+          sudo xcodebuild -downloadPlatform iOS ||
+            echo "✅ iOS Platform already installed"
+          sudo xcrun simctl create "iPhone 15" \
+            com.apple.CoreSimulator.SimDeviceType.iPhone-15 \
+            com.apple.CoreSimulator.SimRuntime.iOS-18-2 ||
+            echo "✅ Simulator already exists"
 
       - name: List Available Simulators
         run: xcrun simctl list devices available --json

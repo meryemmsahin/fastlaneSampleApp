@@ -15,29 +15,29 @@ For _fastlane_ installation instructions, see [Installing _fastlane_](https://do
 
 ## iOS
 
-### ios qa
+### ios ci_tests
 
 ```sh
-[bundle exec] fastlane ios qa
+[bundle exec] fastlane ios ci_tests
 ```
 
-Test Ortamı için Firebase App Distribution'a Yükleme
+Pull Request açıldığında unit testleri çalıştırır
 
-### ios beta
+### ios deploy_to_firebase
 
 ```sh
-[bundle exec] fastlane ios beta
+[bundle exec] fastlane ios deploy_to_firebase
 ```
 
-Beta Testi için TestFlight Dağıtımı
+Develop branch'ine pushlandığında Firebase'e deploy eder
 
-### ios release
+### ios deploy_to_testflight
 
 ```sh
-[bundle exec] fastlane ios release
+[bundle exec] fastlane ios deploy_to_testflight
 ```
 
-Production için App Store Yayınlama
+Main branch'ine pushlandığında TestFlight'a gönderir
 
 ----
 
